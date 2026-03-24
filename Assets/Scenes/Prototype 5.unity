@@ -1528,7 +1528,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Yummy clicker
+  m_text: Yummy ninja
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8abe1e37fe7bf433896970245b936749, type: 2}
   m_sharedMaterial: {fileID: 21175996417216586, guid: 8abe1e37fe7bf433896970245b936749, type: 2}
