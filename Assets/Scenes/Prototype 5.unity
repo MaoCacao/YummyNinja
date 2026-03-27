@@ -1532,7 +1532,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Easy: don''t drop the fruits!
+  m_text: 'Easy: don''t drop the food!
 
     Medium: don''t hit the skull!
 
