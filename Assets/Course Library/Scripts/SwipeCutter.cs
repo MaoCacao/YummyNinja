@@ -1,82 +1,137 @@
 using UnityEngine;
 
-[RequireComponent(typeof(TrailRenderer), typeof(BoxCollider))]
+[RequireComponent(typeof(TrailRenderer))]
 public class SwipeCutter : MonoBehaviour
 {
+    [Header("References")]
     private GameManager gameManager;
     private Camera swipeCamera;
-    private Vector3 mousePos;
     private TrailRenderer trail;
-    private BoxCollider swipeCollider;
-    private bool isSwiping = false;
 
+    [Header("Swipe Settings")]
+    [SerializeField] private float zDistanceFromCamera = 10f;
+    [SerializeField] private float minCuttingSpeed = 0.1f;
+    [SerializeField] private float colliderThickness = 0.6f;
+    [SerializeField] private float smoothing = 0.35f;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-
-    }
+    private bool isSwiping;
+    private Vector3 currentWorldPos;
+    private Vector3 previousWorldPos;
+    private Vector3 smoothedWorldPos;
 
     void Awake()
     {
         swipeCamera = Camera.main;
         trail = GetComponent<TrailRenderer>();
-        swipeCollider = GetComponent<BoxCollider>();
-        trail.enabled = false;
-        swipeCollider.enabled = false;
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+
+        trail.enabled = false;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (gameManager.isGameActive)
+        if (!gameManager.isGameActive)
         {
-            if (Input.GetMouseButtonDown(0))
-            {
-                isSwiping = true;
-                UpdateComponents();
-            }
-            else if (Input.GetMouseButtonUp(0))
-            {
-                isSwiping = false;
-                UpdateComponents();
-            }
-            if (isSwiping)
-            {
-                UpdateMousePosition();
-            }
+            StopSwipe();
+            return;
+        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            StartSwipe();
+        }
+        else if (Input.GetMouseButtonUp(0))
+        {
+            StopSwipe();
+        }
+
+        if (isSwiping)
+        {
+            ContinueSwipe();
         }
     }
 
-    void UpdateMousePosition()
+    void StartSwipe()
     {
-        mousePos = swipeCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,
-        Input.mousePosition.y, 10.0f));
-        transform.position = mousePos;
+        isSwiping = true;
+
+        currentWorldPos = GetMouseWorldPosition();
+        previousWorldPos = currentWorldPos;
+        smoothedWorldPos = currentWorldPos;
+
+        transform.position = currentWorldPos;
+
+        trail.Clear();
+        trail.enabled = true;
     }
 
-    void UpdateComponents()
+    void StopSwipe()
     {
-        trail.enabled = isSwiping;
-        swipeCollider.enabled = isSwiping;
+        isSwiping = false;
+        trail.enabled = false;
     }
 
-    /*void OnCollisionEnter(Collision collision)
+    void ContinueSwipe()
     {
-        if (collision.gameObject.GetComponent<Target>())
+        currentWorldPos = GetMouseWorldPosition();
+        smoothedWorldPos = Vector3.Lerp(smoothedWorldPos, currentWorldPos, smoothing);
+
+        Vector3 delta = smoothedWorldPos - previousWorldPos;
+        float distance = delta.magnitude;
+
+        if (distance > minCuttingSpeed)
         {
-            //Destroy the target
-            collision.gameObject.GetComponent<Target>().DestroyTarget();
+            Vector3 center = previousWorldPos + delta * 0.5f;
+            Quaternion rotation = Quaternion.LookRotation(Vector3.forward, delta.normalized);
+
+            Vector3 halfExtents = new Vector3(
+                distance * 0.5f,
+                colliderThickness,
+                colliderThickness
+            );
+
+            Collider[] hits = Physics.OverlapBox(center, halfExtents, rotation);
+
+            foreach (Collider hit in hits)
+            {
+                Target target = hit.GetComponent<Target>();
+                if (target != null)
+                {
+                    target.DestroyTarget();
+                }
+            }
+
+            transform.position = center;
         }
+
+        previousWorldPos = smoothedWorldPos;
+    }
+
+    Vector3 GetMouseWorldPosition()
+    {
+        Vector3 screenPos = Input.mousePosition;
+        screenPos.z = zDistanceFromCamera;
+        return swipeCamera.ScreenToWorldPoint(screenPos);
+    }
+
+    // For debugging purposes
+    /*void OnDrawGizmos()
+    {
+        if (!Application.isPlaying || !isSwiping) return;
+
+        Gizmos.color = Color.red;
+
+        Vector3 delta = smoothedWorldPos - previousWorldPos;
+        Vector3 center = previousWorldPos + delta * 0.5f;
+        Quaternion rotation = Quaternion.LookRotation(Vector3.forward, delta.normalized);
+
+        Vector3 halfExtents = new Vector3(
+            delta.magnitude * 0.5f,
+            colliderThickness,
+            colliderThickness
+        );
+
+        Gizmos.matrix = Matrix4x4.TRS(center, rotation, Vector3.one);
+        Gizmos.DrawWireCube(Vector3.zero, halfExtents * 2);
     }*/
-
-    private void OnTriggerEnter(Collider other)
-    {
-        Target target = other.GetComponent<Target>();
-        if (target != null)
-        {
-            target.DestroyTarget();
-        }
-    }
 }
