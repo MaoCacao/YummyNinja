@@ -30,7 +30,7 @@ public class SwipeCutter : MonoBehaviour
 
     void Update()
     {
-        if (!gameManager.isGameActive)
+        if (!gameManager.isGameActive || gameManager.isPaused)
         {
             StopSwipe();
             return;
