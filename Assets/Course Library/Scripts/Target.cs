@@ -65,7 +65,7 @@ public class Target : MonoBehaviour
 
         if (gameManager.lives > 0)
         {
-            if (!gameObject.CompareTag("Bad"))
+            if (!gameObject.CompareTag("Bad") && gameManager.isGameActive)
             {
                 gameManager.UpdateLives(gameManager.lives - 1);
             }
