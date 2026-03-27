@@ -49,7 +49,7 @@ public class Target : MonoBehaviour
             gameManager.UpdateScore(pointValue);
             Destroy(gameObject);
             Instantiate(explosion, transform.position, explosion.transform.rotation);
-            if (gameObject.CompareTag("Bad"))
+            if (gameObject.CompareTag("Bad") && (gameManager.gameMode != GameManager.GameMode.Easy))
             {
                 gameManager.GameOver();
             }
@@ -67,7 +67,10 @@ public class Target : MonoBehaviour
         {
             if (!gameObject.CompareTag("Bad") && gameManager.isGameActive)
             {
-                gameManager.UpdateLives(gameManager.lives - 1);
+                if (gameManager.gameMode != GameManager.GameMode.Medium)
+                {
+                    gameManager.UpdateLives(gameManager.lives - 1);
+                }
             }
         }
         else

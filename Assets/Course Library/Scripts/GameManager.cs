@@ -17,6 +17,8 @@ public class GameManager : MonoBehaviour
     public bool isGameActive;
     public Button restartButton;
     public GameObject titleScreen;
+    public enum GameMode { Easy, Medium, Hard };
+    public GameMode gameMode;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -24,40 +26,49 @@ public class GameManager : MonoBehaviour
     }
 
     public GameObject pausePanel;
-private bool isPaused = false;
+    private bool isPaused = false;
 
-void Update()
-{
-    if (Input.GetKeyDown(KeyCode.Space) && isGameActive)
+    void Update()
     {
-        TogglePause();
+        if (Input.GetKeyDown(KeyCode.Space) && isGameActive)
+        {
+            TogglePause();
+        }
     }
-}
 
-public void TogglePause()
-{
-    isPaused = !isPaused;
+    public void TogglePause()
+    {
+        isPaused = !isPaused;
 
-    if (isPaused)
-    {
-        Time.timeScale = 0f;
-        pausePanel.SetActive(true);
+        if (isPaused)
+        {
+            Time.timeScale = 0f;
+            pausePanel.SetActive(true);
+        }
+        else
+        {
+            Time.timeScale = 1f;
+            pausePanel.SetActive(false);
+        }
     }
-    else
-    {
-        Time.timeScale = 1f;
-        pausePanel.SetActive(false);
-    }
-}
 
     public void StartGame(int difficulty)
     {
+        SetGameMode(difficulty);
         isGameActive = true;
         spawnRate /= difficulty;
         score = 0;
         StartCoroutine(SpawnTarget());
         UpdateScore(0);
-        UpdateLives(3);
+        if (gameMode != GameMode.Medium)
+        {
+            UpdateLives(3);
+        }
+        else
+        {
+            livesText.text = "Lives: ∞";
+            lives = 1;
+        }
         titleScreen.gameObject.SetActive(false);
         Time.timeScale = 1f;
     }
@@ -85,6 +96,22 @@ public void TogglePause()
     public void RestartGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void SetGameMode(int difficulty)
+    {
+        switch (difficulty)
+        {
+            case 1:
+                gameMode = GameMode.Easy;
+                break;
+            case 2:
+                gameMode = GameMode.Medium;
+                break;
+            default:
+                gameMode = GameMode.Hard;
+                break;
+        }
     }
 
     IEnumerator SpawnTarget()
